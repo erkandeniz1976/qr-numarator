@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>qr-numerator-pro-v3</title>
+    <title>qr-numerator-pro-v5</title>
     <style>
         body { font-family: system-ui, -apple-system, sans-serif; text-align: center; padding: 20px; background: #eef2f7; color: #333; }
         .card { background: white; padding: 30px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); display: inline-block; max-width: 400px; width: 100%; box-sizing: border-box; }
@@ -16,12 +16,19 @@
 <body>
 
     <div class="card">
-        <h2 id="main-title" style="color: #0070f3;">QR Numaratör V3</h2>
+        <h2 id="main-title" style="color: #0070f3;">QR Numaratör V5</h2>
         <p id="main-message" style="font-size: 15px; color: #555;">Yükleniyor...</p>
 
         <!-- EKRAN 1: Yönetici Paneli -->
         <div id="panel-ekrani">
-            <h3 style="text-align: left; font-size: 16px; margin-top: 20px;">1. Modunuzu Seçin:</h3>
+            <!-- Bildirim Takip Kanalı Bilgisi -->
+            <div style="background: #e0f2fe; padding: 12px; border-radius: 8px; font-size: 13px; margin-bottom: 15px; border: 1px solid #bae6fd;">
+                🔔 <b>Telefon Bildirimlerini Almak İçin:</b><br>
+                Tarayıcıdan şu linki açıp bildirimlere izin verin:<br>
+                <a href="https://ntfy.sh" target="_blank" style="color:#0369a1; font-weight:bold;">ntfy.sh/qr_numerator_erkan</a>
+            </div>
+
+            <h3 style="text-align: left; font-size: 16px; margin-top: 10px;">1. Modunuzu Seçin:</h3>
             <button onclick="modDegistir('🚗 Hatalı Park Modu')" style="background:#28a745;">🚗 Hatalı Park Modu</button>
             <button onclick="modDegistir('⚠️ Acil Durum Modu')" style="background:#ffc107; color:#222;">⚠️ Acil Durum Modu</button>
             <button onclick="modDegistir('💼 Toplantı/Meşgul Modu')" style="background:#17a2b8;">💼 Toplantı/Meşgul Modu</button>
@@ -36,39 +43,37 @@
                 <span id="aktif-mod-rozeti" class="badge">Mod: Belirlenmedi</span>
             </div>
             <p id="vatandas-mesaji" style="font-weight:bold; font-size:16px; line-height: 1.5; background: #fff9db; padding: 15px; border-radius: 8px; border: 1px dashed #f59f00;"></p>
-            <button onclick="alert('Araç sahibine SMS bildirimi gönderildi! (Simülasyon)')" style="background:#28a745; font-size:16px; padding:15px; margin-top: 15px;">💬 Araç Sahibine Haber Ver</button>
+            
+            <!-- ANINDA TELEFONA BİLDİRİM GÖNDEREN YENİ BUTON -->
+            <button id="bildirim-butonu" onclick="telefonaBildirimGonder()" style="background:#28a745; font-size:16px; padding:15px; margin-top: 15px;">💬 Araç Sahibine Haber Ver</button>
+            
             <button onclick="paneleGeriDon()" style="background:#0070f3; font-size:14px; margin-top: 15px;">↩️ Panele Geri Dön</button>
         </div>
     </div>
 
     <script>
-        // Sayfa ilk yüklendiğinde çalışır
+        // Bildirimlerin gideceği tamamen size özel benzersiz kanal adı
+        const BILDIRIM_KANALI = "qr_numerator_erkan"; 
+
         function sayfaBaslat() {
             const kayıtlıMod = localStorage.getItem("secili_qr_modu") || "🚗 Hatalı Park Modu";
             document.getElementById('main-message').innerHTML = `Sistem Aktif. Numaranız gizlidir.<br><b>Güncel Durum:</b> ${kayıtlıMod}`;
         }
 
-        // Mod butonlarına basıldığında çalışır
         function modDegistir(yeniMod) {
             localStorage.setItem("secili_qr_modu", yeniMod);
             document.getElementById('main-message').innerHTML = `Sistem Aktif. Numaranız gizlidir.<br><b>Güncel Durum:</b> ${yeniMod}`;
             alert(`Sistem başarıyla güncellendi:\n${yeniMod}`);
         }
 
-        // Vatandaş Ekranını Göster butonuna basıldığında çalışır
         function vatandasEkraniniAc() {
-            // Panel alanını gizle
             document.getElementById('panel-ekrani').classList.add('hidden');
-            
-            // Başlıkları vatandaş için değiştir
             document.getElementById('main-title').innerText = "📱 QR İletişim Sistemi";
             document.getElementById('main-message').innerText = "Bu aracın sahibi numarasını gizli tutarak sizinle iletişim kurmaktadır.";
             
-            // Hafızadaki modu oku
             const guncelMod = localStorage.getItem("secili_qr_modu") || "🚗 Hatalı Park Modu";
             document.getElementById('aktif-mod-rozeti').innerText = `Durum: ${guncelMod}`;
             
-            // Mesaj içeriğini ayarla
             const mesajAlani = document.getElementById('vatandas-mesaji');
             if(guncelMod.includes("Hatalı Park")) {
                 mesajAlani.innerText = "🚗 Araç hatalı park edilmiştir. Sahibi kısa süre içinde gelecektir. Aşağıdaki butondan bildirim gönderebilirsiniz.";
@@ -78,14 +83,49 @@
                 mesajAlani.innerText = "💼 Araç sahibi şu anda meşguldür veya toplantıdadır. Çok acil değilse lütfen bekleyiniz veya bildirim gönderiniz.";
             }
 
-            // Vatandaş ekranını görünür yap
             document.getElementById('vatandas-ekrani').classList.remove('hidden');
         }
 
-        // Geri dön butonuna basıldığında çalışır
+        // TELEFONA ANINDA GERÇEK BİLDİRİM GÖNDEREN FONKSİYON
+        async function telefonaBildirimGonder() {
+            const btn = document.getElementById('bildirim-butonu');
+            const guncelMod = localStorage.getItem("secili_qr_modu") || "🚗 Hatalı Park Modu";
+            
+            btn.innerText = "⏳ Bildirim Gönderiliyor...";
+            btn.disabled = true;
+            btn.style.background = "#6c757d";
+
+            const mesajMetni = `Aracınızın başındaki bir vatandaş size bildirim gönderdi! Durumunuz: ${guncelMod}`;
+            
+            try {
+                // ntfy sunucusuna gerçek bildirim isteği gönderiyoruz
+                const response = await fetch(`https://ntfy.sh{BILDIRIM_KANALI}`, {
+                    method: 'POST',
+                    body: mesajMetni,
+                    headers: {
+                        'Title': '🔔 QR Numaratör Bildirimi!',
+                        'Priority': 'high',
+                        'Tags': 'car,warning'
+                    }
+                });
+
+                if(response.ok) {
+                    alert("🎉 Bildirim araç sahibinin telefonuna başarıyla ulaştırıldı!");
+                } else {
+                    alert("⚠️ Bildirim gönderilirken bir hata oluştu.");
+                }
+            } catch (error) {
+                alert("❌ Bağlantı hatası: Bildirim gönderilemedi.");
+            } finally {
+                btn.innerText = "💬 Araç Sahibine Haber Ver";
+                btn.disabled = false;
+                btn.style.background = "#28a745";
+            }
+        }
+
         function paneleGeriDon() {
             document.getElementById('vatandas-ekrani').classList.add('hidden');
-            document.getElementById('main-title').innerText = "QR Numaratör V3";
+            document.getElementById('main-title').innerText = "QR Numaratör V5";
             document.getElementById('panel-ekrani').classList.remove('hidden');
             sayfaBaslat();
         }
