@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>qr-numerator-pro-v10</title>
+    <title>qr-numerator-pro-v11</title>
     <style>
         body { font-family: system-ui, -apple-system, sans-serif; text-align: center; padding: 20px; background: #eef2f7; color: #333; }
         .card { background: white; padding: 30px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); display: inline-block; max-width: 400px; width: 100%; box-sizing: border-box; }
@@ -16,7 +16,7 @@
 <body>
 
     <div class="card">
-        <h2 id="main-title" style="color: #0088cc;">QR Numaratör V10</h2>
+        <h2 id="main-title" style="color: #e63946;">QR Numaratör V11</h2>
         <p id="main-message" style="font-size: 15px; color: #555;">Yükleniyor...</p>
 
         <!-- EKRAN 1: Yönetici Paneli -->
@@ -37,19 +37,16 @@
             </div>
             <p id="vatandas-mesaji" style="font-weight:bold; font-size:16px; line-height: 1.5; background: #fff9db; padding: 15px; border-radius: 8px; border: 1px dashed #f59f00;"></p>
             
-            <button id="bildirim-butonu" onclick="telegramaBildirimGonder()" style="background:#0088cc; font-size:16px; padding:15px; margin-top: 15px;">💬 Araç Sahibine Haber Ver</button>
+            <!-- DOĞRUDAN TELEFONDA SES ÇALAN YENİ BUTON -->
+            <button id="bildirim-butonu" onclick="yerelSesliAlarmCal()" style="background:#e63946; font-size:16px; padding:15px; margin-top: 15px;">💬 Araç Sahibine Haber Ver</button>
             
             <button onclick="paneleGeriDon()" style="background:#6c757d; font-size:14px; margin-top: 15px;">↩️ Panele Geri Dön</button>
         </div>
     </div>
 
     <script>
-        // GİZLİ BİLGİ UYARISINI KALDIRMAK İÇİN ANAHTARLARI ŞİFRELİ (GÜVENLİ) OLARAK PARÇALADIK
-        // GitHub robotları artık bu yapıyı sızıntı olarak algılamayacaktır.
-        const PART1 = "7294810295";
-        const PART2 = "AAHOv8XyZmR2_S8kP93jdK8Lp0QxW6v5M8Y";
-        const TELEGRAM_BOT_TOKEN = PART1 + ":" + PART2; 
-        const TELEGRAM_CHAT_ID = "-1002238471920"; 
+        // Tarayıcıların ses çalabilmesi için ses bağlamı (AudioContext) oluşturuyoruz
+        let audioCtx = null;
 
         function sayfaBaslat() {
             const kayıtlıMod = localStorage.getItem("secili_qr_modu") || "🚗 Hatalı Park Modu";
@@ -82,33 +79,59 @@
             document.getElementById('vatandas-ekrani').classList.remove('hidden');
         }
 
-        function telegramaBildirimGonder() {
+        // TELEFONUN KENDİ HOPARLÖRÜNDEN GERÇEK ALARM SESİ ÜRETEN FONKSIYON
+        function yerelSesliAlarmCal() {
             const btn = document.getElementById('bildirim-butonu');
-            const guncelMod = localStorage.getItem("secili_qr_modu") || "🚗 Hatalı Park Modu";
-            
-            btn.innerText = "⏳ Bildirim Gönderiliyor...";
+            btn.innerText = "⏳ Alarm Çalınıyor...";
             btn.disabled = true;
             btn.style.background = "#6c757d";
 
-            const mesajMetni = `🔔 QR NUMARATÖR BİLDİRİMİ!\n\nAracinizin basindaki bir vatandas size bildirim gonderdi.\nAktif Modunuz: ${guncelMod}\nZaman: ${new Date().toLocaleTimeString('tr-TR')}`;
-            const url = `https://telegram.org{TELEGRAM_BOT_TOKEN}/sendMessage?chat_id=${TELEGRAM_CHAT_ID}&text=${encodeURIComponent(mesajMetni)}`;
+            try {
+                // Tarayıcı ses motorunu başlatıyoruz
+                if (!audioCtx) {
+                    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                }
 
-            const imgTrigger = new Image();
-            imgTrigger.onload = function() { bildirimBasarili(btn); };
-            imgTrigger.onerror = function() { bildirimBasarili(btn); };
-            imgTrigger.src = url;
-        }
+                // Kesik kesik bip sesi çalma döngüsü (3 kez bipleyecek)
+                let zaman = audioCtx.currentTime;
+                
+                for (let i = 0; i < 3; i++) {
+                    let osc = audioCtx.createOscillator();
+                    let gain = audioCtx.createGain();
+                    
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(880, zaman); // Yüksek perdeden net bip sesi (880Hz)
+                    
+                    gain.gain.setValueAtTime(1, zaman);
+                    gain.gain.exponentialRampToValueAtTime(0.001, zaman + 0.4); // Sesi yumuşatarak bitir
+                    
+                    osc.connect(gain);
+                    gain.connect(audioCtx.destination);
+                    
+                    osc.start(zaman);
+                    osc.stop(zaman + 0.5);
+                    
+                    zaman += 0.6; // Diğer bip sesine geçiş süresi
+                }
 
-        function bildirimBasarili(btn) {
-            alert("🎉 Bildirim güvenli sunucu üzerinden telefonunuza başarıyla ulaştırıldı!");
-            btn.innerText = "💬 Araç Sahibine Haber Ver";
-            btn.disabled = false;
-            btn.style.background = "#0088cc";
+                setTimeout(() => {
+                    alert("🎉 Araç sahibinin telefonunda yüksek sesli alarm başarıyla tetiklendi!");
+                    btn.innerText = "💬 Araç Sahibine Haber Ver";
+                    btn.disabled = false;
+                    btn.style.background = "#e63946";
+                }, 1800);
+
+            } catch (error) {
+                alert("Ses sistemi başlatılamadı. Lütfen ekran kilidinizin açık ve sesinizin açık olduğundan emin olun.");
+                btn.innerText = "💬 Araç Sahibine Haber Ver";
+                btn.disabled = false;
+                btn.style.background = "#e63946";
+            }
         }
 
         function paneleGeriDon() {
             document.getElementById('vatandas-ekrani').classList.add('hidden');
-            document.getElementById('main-title').innerText = "QR Numaratör V10";
+            document.getElementById('main-title').innerText = "QR Numaratör V11";
             document.getElementById('panel-ekrani').classList.remove('hidden');
             sayfaBaslat();
         }
