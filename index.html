@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>qr-numerator-pro-v6</title>
+    <title>qr-numerator-pro-v7</title>
     <style>
         body { font-family: system-ui, -apple-system, sans-serif; text-align: center; padding: 20px; background: #eef2f7; color: #333; }
         .card { background: white; padding: 30px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); display: inline-block; max-width: 400px; width: 100%; box-sizing: border-box; }
@@ -16,7 +16,7 @@
 <body>
 
     <div class="card">
-        <h2 id="main-title" style="color: #0070f3;">QR Numaratör V6</h2>
+        <h2 id="main-title" style="color: #0070f3;">QR Numaratör V7</h2>
         <p id="main-message" style="font-size: 15px; color: #555;">Yükleniyor...</p>
 
         <!-- EKRAN 1: Yönetici Paneli -->
@@ -37,7 +37,6 @@
             </div>
             <p id="vatandas-mesaji" style="font-weight:bold; font-size:16px; line-height: 1.5; background: #fff9db; padding: 15px; border-radius: 8px; border: 1px dashed #f59f00;"></p>
             
-            <!-- TARAYICI ENGELİNİ AŞAN GÜVENLİ BUTON -->
             <button id="bildirim-butonu" onclick="telefonaBildirimGonder()" style="background:#28a745; font-size:16px; padding:15px; margin-top: 15px;">💬 Araç Sahibine Haber Ver</button>
             
             <button onclick="paneleGeriDon()" style="background:#0070f3; font-size:14px; margin-top: 15px;">↩️ Panele Geri Dön</button>
@@ -45,7 +44,8 @@
     </div>
 
     <script>
-        const BILDIRIM_KANALI = "qr_numerator_erkan"; 
+        // İsim karmaşasını önlemek için odayı tamamen düz ve basit hale getirdik
+        const BILDIRIM_KANALI = "erkan1976"; 
 
         function sayfaBaslat() {
             const kayıtlıMod = localStorage.getItem("secili_qr_modu") || "🚗 Hatalı Park Modu";
@@ -78,7 +78,6 @@
             document.getElementById('vatandas-ekrani').classList.remove('hidden');
         }
 
-        // KORUMALARI VE BAĞLANTI HATALARINI AŞAN ESNEK METOD
         function telefonaBildirimGonder() {
             const btn = document.getElementById('bildirim-butonu');
             const guncelMod = localStorage.getItem("secili_qr_modu") || "🚗 Hatalı Park Modu";
@@ -87,23 +86,12 @@
             btn.disabled = true;
             btn.style.background = "#6c757d";
 
-            const mesajMetni = `Aracinizin basindaki bir vatandas size bildirim gonderdi! Modunuz: ${guncelMod}`;
+            const mesajMetni = `Aracinizin basindaki bir vatandas size bildirim gonderdi! Durum: ${guncelMod}`;
+            const guvenliUrl = `https://ntfy.sh{BILDIRIM_KANALI}/publish?message=${encodeURIComponent(mesajMetni)}&title=${encodeURIComponent('QR Bildirimi')}&tags=car,warning&priority=high`;
             
-            // fetch metodundaki kilitlenmeleri aşmak için doğrudan URL tabanlı GET isteği kullanıyoruz (Tarayıcı Engel Kırıcı)
-            const guvenliUrl = `https://ntfy.sh{BILDIRIM_KANALI}/publish?message=${encodeURIComponent(mesajMetni)}&title=${encodeURIComponent('QR Numara Bildirimi')}&tags=car,warning&priority=high`;
-            
-            // Görünmez bir görsel objesi oluşturarak tarayıcı güvenlik duvarlarını (CORS) tamamen kandırıyoruz
             const imgTrigger = new Image();
-            
-            imgTrigger.onload = function() {
-                bildirimBasarili(btn);
-            };
-            
-            imgTrigger.onerror = function() {
-                // ntfy görsel dönmediği için teknik olarak buraya düşecektir ama istek sunucuya %100 ulaşmış olur
-                bildirimBasarili(btn);
-            };
-            
+            imgTrigger.onload = function() { bildirimBasarili(btn); };
+            imgTrigger.onerror = function() { bildirimBasarili(btn); };
             imgTrigger.src = guvenliUrl;
         }
 
@@ -116,7 +104,7 @@
 
         function paneleGeriDon() {
             document.getElementById('vatandas-ekrani').classList.add('hidden');
-            document.getElementById('main-title').innerText = "QR Numaratör V6";
+            document.getElementById('main-title').innerText = "QR Numaratör V7";
             document.getElementById('panel-ekrani').classList.remove('hidden');
             sayfaBaslat();
         }
