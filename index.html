@@ -98,13 +98,11 @@
             document.getElementById('vatandas-ekrani').classList.remove('hidden');
         }
 
-        // Vatandaş butona bastığında hafıza üzerinden paneli tetikler
         function yerelSinyalTetikle() {
             const btn = document.getElementById('bildirim-butonu');
             btn.innerText = "⏳ Bildirim Gönderiliyor...";
             btn.disabled = true;
 
-            // Ortak yerel havuz üzerinden alarm durumunu aktifleştiriyoruz
             localStorage.setItem("qr_canli_alarm", "true");
 
             setTimeout(() => {
@@ -115,7 +113,6 @@
             }, 800);
         }
 
-        // Kırmızı uyarı ekranını ve sesi devreye sokan fonksiyon
         function alarmCalmayaBasla() {
             document.getElementById('main-card').classList.add('alarm-aktif');
             document.getElementById('alarm-kutusu').innerHTML = "🚨 <b>ACİL BİLDİRİM:</b> Aracınızın başında bir vatandaş bekliyor ve butona bastı!";
@@ -143,7 +140,6 @@
             }
         }
 
-        // Sürücü alarmı gördüğünde sistemi ilk haline döndürür
         function alarmSustur() {
             localStorage.setItem("qr_canli_alarm", "false");
             clearInterval(alarmInterval);
@@ -163,5 +159,9 @@
             document.getElementById('main-title').innerText = "QR Numaratör V23";
             document.getElementById('panel-ekrani').classList.remove('hidden');
             sayfaBaslat();
-	}
-	window.onload = sayfaBaslat;
+        }
+
+        window.onload = sayfaBaslat;
+    </script>
+</body>
+</html>
