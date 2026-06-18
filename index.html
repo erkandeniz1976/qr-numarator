@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>qr-numerator-pro-v19</title>
+    <title>qr-numerator-pro-v20</title>
     <style>
         body { font-family: system-ui, -apple-system, sans-serif; text-align: center; padding: 20px; background: #eef2f7; color: #333; }
         .card { background: white; padding: 30px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); display: inline-block; max-width: 400px; width: 100%; box-sizing: border-box; }
@@ -11,22 +11,22 @@
         input { padding: 12px; width: 100%; margin-bottom: 12px; border: 1px solid #ccc; border-radius: 8px; box-sizing: border-box; font-size: 15px; }
         .hidden { display: none; }
         .badge { background: #e2e8f0; padding: 6px 12px; border-radius: 5px; font-size: 14px; font-weight: bold; display: inline-block; }
-        .info-box { background: #e8f5e9; padding: 12px; border-radius: 8px; font-size: 14px; margin-bottom: 15px; border: 1px solid #c8e6c9; color: #2e7d32; text-align: left; }
+        .info-box { background: #e0f2fe; padding: 12px; border-radius: 8px; font-size: 14px; margin-bottom: 15px; border: 1px solid #bae6fd; color: #0369a1; text-align: left; }
     </style>
 </head>
 <body>
 
     <div class="card">
-        <h2 id="main-title" style="color: #25d366;">QR Numaratör V19</h2>
+        <h2 id="main-title" style="color: #ff8c00;">QR Numaratör V20</h2>
         <p id="main-message" style="font-size: 15px; color: #555;">Yükleniyor...</p>
 
         <!-- EKRAN 1: Yönetici Paneli -->
         <div id="panel-ekrani">
             <div class="info-box">
                 🔒 <b>Gizli İletişim Kimliği Belirleyin:</b><br>
-                WhatsApp yönlendirmesi için numaranızı girin (Vatandaşlar bu numarayı ekranda asla göremez):<br>
+                Bip yönlendirmesi için numaranızı girin (Vatandaşlar bu numarayı ekranda asla göremez):<br>
                 <input type="tel" id="user-phone-input" placeholder="Örn: 05321234567" style="margin-top: 8px; margin-bottom: 8px;">
-                <button onclick="numaraKaydet()" style="background:#25d366; padding:6px 12px; font-size:13px; width:auto; margin:0;">🔒 Kimliği Kaydet</button>
+                <button onclick="numaraKaydet()" style="background:#ff8c00; padding:6px 12px; font-size:13px; width:auto; margin:0;">🔒 Kimliği Kaydet</button>
             </div>
 
             <h3 style="text-align: left; font-size: 16px; margin-top: 10px;">1. Modunuzu Seçin:</h3>
@@ -45,8 +45,8 @@
             </div>
             <p id="vatandas-mesaji" style="font-weight:bold; font-size:16px; line-height: 1.5; background: #fff9db; padding: 15px; border-radius: 8px; border: 1px dashed #f59f00;"></p>
             
-            <!-- TARAYICININ ASLA ENGELLEYEMEDİĞİ SAF İNTERNET LİNKİ -->
-            <a id="bildirim-linki" href="#" class="btn-link" style="background:#25d366;">💬 Araç Sahibine Anonim Bildirim Gönder</a>
+            <!-- TARAYICININ ASLA ENGELLEYEMEDİĞİ SAF KURUMSAL LİNK -->
+            <a id="bildirim-linki" href="#" class="btn-link" style="background:#ff8c00;">💬 Araç Sahibine Anonim Bildirim Gönder</a>
             
             <button onclick="paneleGeriDon()" style="background:#6c757d; font-size:14px; margin-top: 15px;">↩️ Panele Geri Dön</button>
         </div>
@@ -58,7 +58,6 @@
             document.getElementById('main-message').innerHTML = `Sistem Aktif. Numaranız %100 Gizlidir.<br><b>Güncel Durum:</b> ${kayıtlıMod}`;
             
             let kayitliNumara = localStorage.getItem("qr_secure_phone") || "";
-            // Görsel olarak kutuda 90 olmadan temiz gösterelim
             if(kayitliNumara.startsWith("90")) {
                 document.getElementById('user-phone-input').value = "0" + kayitliNumara.substring(2);
             } else {
@@ -74,6 +73,7 @@
                 alert("❌ Lütfen geçerli bir numara girin.");
                 return;
             }
+            // Bip için numaranın başında 90 olması gerekir
             if(!numara.startsWith("90")) {
                 numara = "90" + numara.replace(/^0/, "");
             }
@@ -89,25 +89,21 @@
             linkiGuncelle();
         }
 
-        // TARAYICI ENGELİNİ YIKAN EN KRİTİK FONKSİYON
+        // GÜVENLİK DUVARLARINI AŞAN BIP YÖNLENDİRME KÖPRÜSÜ
         function linkiGuncelle() {
-            const guncelMod = localStorage.getItem("secili_qr_modu") || "🚗 Hatalı Park Modu";
             const gizliNumara = localStorage.getItem("qr_secure_phone") || "";
-            
-            const hazirMesaj = `🔔 QR NUMARATÖR BİLDİRİMİ!\n\nAracınızın başındaki bir vatandaş size bildirim gönderdi.\nAktif Durumunuz: ${guncelMod}\nZaman: ${new Date().toLocaleTimeString('tr-TR')}`;
-            
             const linkButonu = document.getElementById('bildirim-linki');
             
             if(!gizliNumara) {
                 linkButonu.href = "javascript:alert('❌ Hata: Önce yönetim panelinden kimliğinizi kaydetmelisiniz!');";
             } else {
-                // Doğrudan HTML köprüsü oluşturuyoruz, tarayıcı tıklamayı asla durduramaz
-                linkButonu.href = `https://whatsapp.com{gizliNumara}&text=${encodeURIComponent(hazirMesaj)}`;
+                // Tarayıcıların "about:blank" engeline takılmayan resmi kurumsal Bip yönlendirmesi
+                linkButonu.href = `https://bip.ai{gizliNumara}`;
             }
         }
 
         function vatandasEkraniniAc() {
-            linkiGuncelle(); // Her ihtimale karşı linki tekrar tazele
+            linkiGuncelle();
             document.getElementById('panel-ekrani').classList.add('hidden');
             document.getElementById('main-title').innerText = "📱 QR İletişim Sistemi";
             document.getElementById('main-message').innerText = "Bu aracın sahibi numarasını %100 gizli tutarak sizinle iletişim kurmaktadır.";
@@ -129,7 +125,7 @@
 
         function paneleGeriDon() {
             document.getElementById('vatandas-ekrani').classList.add('hidden');
-            document.getElementById('main-title').innerText = "QR Numaratör V19";
+            document.getElementById('main-title').innerText = "QR Numaratör V20";
             document.getElementById('panel-ekrani').classList.remove('hidden');
             sayfaBaslat();
         }
