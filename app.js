@@ -1,18 +1,18 @@
 // =================================================================
 // 1. FIREBASE BAĞLANTI AYARLARI
 // =================================================================
-// Lütfen tırnak içindeki alanları kendi Firebase panelinizden kopyalayıp doldurun.
+// Lütfen burayı kendi Firebase konsolunuzdan aldığınız bilgilerle DOLDURUN.
 const firebaseConfig = {
-    apiKey: "BURAYA_APİ_KEY_GELECEK",
-    authDomain: "BURAYA_AUTH_DOMAİN_GELECEK",
-    databaseURL: "BURAYA_DATABASE_URL_GELECEK",
-    projectId: "BURAYA_PROJECT_ID_GELECEK",
-    storageBucket: "BURAYA_STORAGE_BUCKET_GELECEK",
-    messagingSenderId: "BURAYA_SENDER_ID_GELECEK",
-    appId: "BURAYA_APP_ID_GELECEK"
+  apiKey: "AIzaSyCJpkgYGXdNqATunee0ro5NuduE5XohwIU",
+  authDomain: "qr-numarator-23ba9.firebaseapp.com",
+  databaseURL: "https://qr-numarator-23ba9-default-rtdb.firebaseio.com",
+  projectId: "qr-numarator-23ba9",
+  storageBucket: "qr-numarator-23ba9.firebasestorage.app",
+  messagingSenderId: "23341888407",
+  appId: "1:23341888407:web:0359c86e3662a15b808ad2"
 };
 
-// Firebase Başlatma Kontrolü
+// Global Firebase ve DB Başlatma Kontrolü
 if (!firebase.apps.length) {
     firebase.initializeApp(firebaseConfig);
 }
@@ -24,7 +24,6 @@ const db = firebase.database();
 const urlParams = new URLSearchParams(window.location.search);
 let secureID = urlParams.get('id');
 
-// Eğer adreste id= parametresi yoksa, anında üretip sayfayı yeni linkle açar
 if (!secureID) {
     secureID = 'qr_' + Math.random().toString(36).substring(2, 8);
     window.location.href = window.location.pathname + "?id=" + secureID;
@@ -34,11 +33,10 @@ if (!secureID) {
 // 3. CANLI BULUT SUNUCUSU DİNLEYİCİSİ
 // =================================================================
 window.onload = function() {
-    // Mesaj havuzunu ve buton olaylarını bağla
     canliMesajHavuzunuGuncelle();
     butonOlaylariniBagla();
+    qrKodUret();
 
-    // Sunucudan anlık mod verisini dinle
     db.ref('guvenli_araclar/' + secureID).on('value', (snapshot) => {
         const data = snapshot.val();
         
@@ -49,10 +47,9 @@ window.onload = function() {
             return;
         }
 
-        // Başlık mesajlarını güncelle (Yazı kilidi burada çözülüyor)
         const mainMessageNode = document.getElementById('main-message');
         if (mainMessageNode) {
-            mainMessageNode.className = ""; // loading sınıfını kaldır
+            mainMessageNode.className = ""; 
             mainMessageNode.innerHTML = `Güvenli Kod: <b>${secureID}</b><br>Sistem Aktif (Gizlilik %100 Korunuyor).<br><b>Güncel Durum:</b> ${data.aktif_mod}`;
         }
         
@@ -61,7 +58,6 @@ window.onload = function() {
             aktifModRozetiNode.innerText = `Durum: ${data.aktif_mod}`;
         }
         
-        // Vatandaşa gösterilecek özel açıklamalar
         let mesaj = "ℹ️ Sürücüye ulaşmak için lütfen aşağıdaki durum butonlarından birine dokunun.";
         if (data.aktif_mod && data.aktif_mod.includes("Park")) mesaj = "🚗 Kısa süreliğine hatalı park etmek zorunda kaldım. Lütfen durumunuzu belirten hazır butonlara tıklayarak bana bildirin, hemen geleceğim.";
         if (data.aktif_mod && data.aktif_mod.includes("Acil")) mesaj = "⚠️ Acil bir durum nedeniyle buradayım. Bana anında bildirim yollamak için lütfen aşağıdaki hazır mesaj butonlarını kullanın.";
@@ -78,7 +74,6 @@ window.onload = function() {
 // 4. İŞLEVSEL FONKSİYONLAR VE BUTON TETİKLEYİCİLERİ
 // =================================================================
 function butonOlaylariniBagla() {
-    // Sürücü Mod Değiştirme Sistemi
     const modButonlari = document.getElementsByClassName('mod-btn');
     for (let buton of modButonlari) {
         buton.addEventListener('click', function() {
@@ -86,7 +81,6 @@ function butonOlaylariniBagla() {
         });
     }
 
-    // Vatandaşın Hazır Hızlı Mesajlara Tıklama Olayı
     const hizliMesajButonlari = document.getElementsByClassName('hizli-mesaj-btn');
     for (let buton of hizliMesajButonlari) {
         buton.addEventListener('click', function() {
@@ -103,7 +97,6 @@ function butonOlaylariniBagla() {
         });
     }
 
-    // Sürücü Panelindeki Mesajları Veritabanından Tamamen Silme
     const btnTemizle = document.getElementById('btn-mesajlari-temizle');
     if (btnTemizle) {
         btnTemizle.addEventListener('click', () => {
@@ -115,7 +108,6 @@ function butonOlaylariniBagla() {
         });
     }
 
-    // İnternet Araması
     const btnAra = document.getElementById('btn-guvenli-ara');
     if (btnAra) {
         btnAra.addEventListener('click', () => {
@@ -123,7 +115,6 @@ function butonOlaylariniBagla() {
         });
     }
 
-    // Arama Filtreleme (Sürücü Paneli)
     const modSearch = document.getElementById('mod-search');
     if (modSearch) {
         modSearch.addEventListener('keyup', function() {
@@ -145,7 +136,6 @@ function butonOlaylariniBagla() {
         });
     }
 
-    // Ekran Değiştirme Tetikleyicileri
     const btnVatandasAc = document.getElementById('btn-vatandas-ekranini-ac');
     if (btnVatandasAc) {
         btnVatandasAc.addEventListener('click', () => {
@@ -160,12 +150,11 @@ function butonOlaylariniBagla() {
         btnPaneleDon.addEventListener('click', () => {
             document.getElementById('vatandas-ekrani').classList.add('hidden');
             document.getElementById('panel-ekrani').classList.remove('hidden');
-            document.getElementById('main-title').innerText = "QR Numaratör";
+            document.getElementById('main-title').innerText = "QR PREMIUM";
         });
     }
 }
 
-// Sürücü Panelindeki Gelen Mesajlar Listesini Canlı Güncelleyen Fonksiyon
 function canliMesajHavuzunuGuncelle() {
     const mesajKutusu = document.getElementById('sürücü-mesaj-havuzu');
     if (!mesajKutusu) return;
@@ -178,9 +167,8 @@ function canliMesajHavuzunuGuncelle() {
             return;
         }
 
-        mesajKutusu.innerHTML = ""; // Kutuyu temizle
+        mesajKutusu.innerHTML = ""; 
         
-        // Mesajları listele
         Object.keys(mesajlar).reverse().forEach(key => {
             const m = mesajlar[key];
             const div = document.createElement('div');
@@ -188,5 +176,23 @@ function canliMesajHavuzunuGuncelle() {
             div.innerHTML = `<span class="mesaj-vakit">${m.tarih}</span> 💬 ${m.metin}`;
             mesajKutusu.appendChild(div);
         });
+    });
+}
+
+// =================================================================
+// 5. OTOMATİK QR KOD ÜRETİM SİSTEMİ
+// =================================================================
+function qrKodUret() {
+    const qrAlani = document.getElementById("qrcode-alanı");
+    if (!qrAlani) return;
+    
+    qrAlani.innerHTML = "";
+    new QRCode(qrAlani, {
+        text: window.location.href,
+        width: 160,
+        height: 160,
+        colorDark : "#1e3a8a",
+        colorLight : "#ffffff",
+        correctLevel : QRCode.CorrectLevel.H
     });
 }
