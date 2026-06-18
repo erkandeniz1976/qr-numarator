@@ -15,14 +15,15 @@ firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
 
 // =================================================================
-// 2. GÜVENLİ ID YÖNETİMİ (Kişisel Veri İçermeyen Rastgele Token)
+// 2. GÜVENLİ ID YÖNETİMİ (Zorunlu Adres Çubuğu Güncelleyici)
 // =================================================================
 const urlParams = new URLSearchParams(window.location.search);
 let secureID = urlParams.get('id');
 
+// Eğer adreste id= parametresi yoksa, anında üretip sayfayı yeni linkle açar
 if (!secureID) {
     secureID = 'qr_' + Math.random().toString(36).substring(2, 8);
-    window.history.replaceState({}, document.title, window.location.pathname + "?id=" + secureID);
+    window.location.href = window.location.pathname + "?id=" + secureID;
 }
 
 // =================================================================
@@ -52,7 +53,7 @@ window.onload = function() {
     });
 
     // Sürücü için gelen mesajları canlı dinlemeyi başlat
-    canliMesaj HavuzunuGuncelle();
+    canliMesajHavuzunuGuncelle();
 };
 
 // =================================================================
@@ -67,7 +68,7 @@ for (let buton of modButonlari) {
     });
 }
 
-// Vatandaşın Hazır Hızlı Mesajlara Tıklama Olayı (YENİ)
+// Vatandaşın Hazır Hızlı Mesajlara Tıklama Olayı
 const hizliMesajButonlari = document.getElementsByClassName('hizli-mesaj-btn');
 for (let buton of hizliMesajButonlari) {
     buton.addEventListener('click', function() {
@@ -85,7 +86,7 @@ for (let buton of hizliMesajButonlari) {
     });
 }
 
-// Sürücü Panelindeki Gelen Mesajlar Listesini Canlı Güncelleyen Fonksiyon (YENİ)
+// Sürücü Panelindeki Gelen Mesajlar Listesini Canlı Güncelleyen Fonksiyon
 function canliMesajHavuzunuGuncelle() {
     const mesajKutusu = document.getElementById('sürücü-mesaj-havuzu');
     
@@ -109,6 +110,15 @@ function canliMesajHavuzunuGuncelle() {
         });
     });
 }
+
+// Sürücü Panelindeki Mesajları Veritabanından Tamamen Silme
+document.getElementById('btn-mesajlari-temizle').addEventListener('click', () => {
+    if(confirm("Tüm gelen mesaj geçmişini silmek istediğinize emin misiniz?")) {
+        db.ref('guvenli_araclar/' + secureID + '/mesajlar').remove().then(() => {
+            alert("🗑️ Mesaj geçmişi başarıyla temizlendi!");
+        });
+    }
+});
 
 // İnternet Araması
 document.getElementById('btn-guvenli-ara').addEventListener('click', () => {
@@ -144,12 +154,18 @@ document.getElementById('btn-panele-geri-don').addEventListener('click', () => {
     document.getElementById('main-title').innerText = "QR Numaratör";
 });
 
-// Sürücü Panelindeki Mesajları Veritabanından Tamamen Silme
-document.getElementById('btn-mesajlari-temizle').addEventListener('click', () => {
-    if(confirm("Tüm gelen mesaj geçmişini silmek istediğinize emin misiniz?")) {
-        db.ref('guvenli_araclar/' + secureID + '/mesajlar').remove().then(() => {
-            alert("🗑️ Mesaj geçmişi başarıyla temizlendi!");
-        });
-    }
+// =================================================================
+// 5. OTOMATİK QR KOD ÜRETİM SİSTEMİ
+// =================================================================
+db.ref('guvenli_araclar/' + secureID).once('value', () => {
+    const canliUygulamaLinki = window.location.href; 
+    document.getElementById("qrcode-alanı").innerHTML = "";
+    new QRCode(document.getElementById("qrcode-alanı"), {
+        text: canliUygulamaLinki,
+        width: 160,
+        height: 160,
+        colorDark : "#2563eb",
+        colorLight : "#ffffff",
+        correctLevel : QRCode.CorrectLevel.H
+    });
 });
-
