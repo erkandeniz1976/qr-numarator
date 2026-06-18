@@ -137,7 +137,7 @@
         function canliMesajHavuzunuGuncelle() {
             const mesajKutusu = document.getElementById('sürücü-mesaj-havuzu');
             if (!mesajKutusu) return;
-            db.ref('guvenli_araclar/' + secureID + '/mesajlar').on('value', (snapshot) => {
+            db.ref('guvenli_araclar/' + secureID).child('mesajlar').on('value', (snapshot) => {
                 const mesajlar = snapshot.val();
                 if (!mesajlar) { mesajKutusu.innerHTML = `<div style="color: #94a3b8; font-style: italic; text-align: center;">Henüz mesaj yok...</div>`; return; }
                 mesajKutusu.innerHTML = "";
@@ -153,4 +153,3 @@
     </script>
 </body>
 </html>
-
