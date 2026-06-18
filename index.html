@@ -137,16 +137,34 @@
             document.getElementById('btn-vatandas-ekranini-ac').addEventListener('click', () => { document.getElementById('panel-ekrani').classList.add('hidden'); document.getElementById('vatandas-ekrani').classList.remove('hidden'); document.getElementById('main-title').innerText = "📱 Korumalı İletişim Sistemi"; });
             document.getElementById('btn-panele-geri-don').addEventListener('click', () => { document.getElementById('vatandas-ekrani').classList.add('hidden'); document.getElementById('panel-ekrani').classList.remove('hidden'); document.getElementById('main-title').innerText = "QR PREMIUM"; });
         }
-        function canliMesajHavuzunuGuncelle() {
+            function canliMesajHavuzunuGuncelle() {
             const mesajKutusu = document.getElementById('sürücü-mesaj-havuzu');
             if (!mesajKutusu) return;
+            
             db.ref('guvenli_araclar/' + secureID).child('mesajlar').on('value', (snapshot) => {
                 const mesajlar = snapshot.val();
-                if (!mesajlar) { mesajKutusu.innerHTML = `<div style="color: #94a3b8; font-style: italic; text-align: center;">Henüz mesaj yok...</div>`; return; }
+                
+                // Sunucu boşsa kilitlemeyi önleyen güvenli kontrol alanı
+                if (!mesajlar || Object.keys(mesajlar).length === 0) {
+                    mesajKutusu.innerHTML = `<div style="color: #94a3b8; font-style: italic; text-align: center;">Henüz mesaj yok...</div>`;
+                    return;
+                }
+
                 mesajKutusu.innerHTML = "";
-                Object.keys(mesajlar).reverse().forEach(key => { const m = mesajlar[key]; const div = document.createElement('div'); div.className = "mesaj-item"; div.innerHTML = `<span class="mesaj-vakit">${m.tarih}</span> 💬 ${m.metin}`; mesajKutusu.appendChild(div); });
+                
+                // Güvenli listeleme (Hata vermeyen yeni döngü)
+                const mesajAnahtarlari = Object.keys(mesajlar);
+                for (let i = mesajAnahtarlari.length - 1; i >= 0; i--) {
+                    const key = mesajAnahtarlari[i];
+                    const m = mesajlar[key];
+                    const div = document.createElement('div');
+                    div.className = "mesaj-item";
+                    div.innerHTML = `<span class="mesaj-vakit">${m.tarih || ''}</span> 💬 ${m.metin}`;
+                    mesajKutusu.appendChild(div);
+                }
             });
         }
+
         function qrKodUret() {
             const qrAlani = document.getElementById("qrcode-alanı");
             if (!qrAlani) return;
